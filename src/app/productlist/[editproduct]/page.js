@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+
 const Page = (props) => {
     const nameref = useRef();
     const priceref = useRef();
@@ -8,44 +9,58 @@ const Page = (props) => {
     const colourref = useRef();
     const categoryref = useRef();
 
-    const addProductManage = async () => {
-        const nameaf = nameref.current?.value;
-        const priceaf = priceref.current?.value;
-        const companyaf = companyref.current?.value;
-        const colouraf = colourref.current?.value;
-        const categoryaf = categoryref.current?.value;
+    const getProductDetail = async () => {
+        try {
+            const productId = props.params.editproduct;
+            const response = await fetch(`http://localhost:3000/api/products/${productId}`);
+            const productData = await response.json();
+            const result = productData.result;
 
-
-        if (!nameaf || !priceaf || !companyaf || !colouraf || !categoryaf) {
-            alert("Please fill all fields.");
-            return;
-        }
-        
-
-       
-            let response = await fetch("/api/products", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    name: nameaf,
-                    price: priceaf,
-                    company: companyaf,
-                    color: colouraf,
-                    category: categoryaf,
-                }),
-
-
-            });
-            const result = await response.json();
-            if (result.success) {
-                alert("Data added successfully!");
-                clearInputs();
-            } else {
-                alert("Failed to add data.");
+            if (result) {
+                nameref.current.value = result.name || "";
+                colourref.current.value = result.color || "";
+                priceref.current.value = result.price || "";
+                companyref.current.value = result.company || "";
+                categoryref.current.value = result.category || "";
             }
-        
+        } catch (error) {
+            console.error("Error fetching product details:", error);
+            alert("Failed to fetch product details.");
+        }
+    };
+
+    useEffect(() => {
+        getProductDetail();
+    }, []);
+
+    const updateProduct = async () => {
+        try {
+            const productId = props.params.editproduct;
+            const updatedData = {
+                name: nameref.current.value,
+                price: priceref.current.value,
+                company: companyref.current.value,
+                color: colourref.current.value,
+                category: categoryref.current.value,
+            };
+
+            const response = await fetch(`http://localhost:3000/api/products/${productId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedData),
+            });
+
+            const data = await response.json();
+
+            if (data.result) {
+                alert("Product updated successfully!");
+            } else {
+                alert("Product update failed.");
+            }
+        } catch (error) {
+            console.error("Error updating product:", error);
+            alert("Failed to update product.");
+        }
     };
 
     const clearInputs = () => {
@@ -55,18 +70,10 @@ const Page = (props) => {
         colourref.current.value = "";
         categoryref.current.value = "";
     };
-    useEffect(()=>{
-        getProductDetail()
-    },[])
-
-    const getProductDetail = async()=>{
-        let productData =await fetch("http://localhost:3000/api/products/67464e370b5346b7d231215a")
-        productData = await productData.json()
-    }
 
     return (
         <div className="flex justify-center items-center h-[90vh] flex-col gap-2">
-            <div className="mb-3">update Products</div>
+            <div className="mb-3">Update Product</div>
             <div>
                 <input
                     type="text"
@@ -101,10 +108,10 @@ const Page = (props) => {
             </div>
             <div className="flex space-x-4 mt-4">
                 <button
-                    onClick={addProductManage}
+                    onClick={updateProduct}
                     className="text-cyan-400 hover:border-2 hover:border-cyan-300 w-32 text-center p-2"
                 >
-                    edit Product
+                    Edit Product
                 </button>
                 <button
                     onClick={clearInputs}
@@ -113,11 +120,9 @@ const Page = (props) => {
                     Clear
                 </button>
             </div>
-            <div className='flex justify-center items-center mt-5'> 
-          <Link href='/productlist'>product list</Link>
-                </div>
-            
-
+            <div className="flex justify-center items-center mt-5">
+                <Link href="/productlist">Product List</Link>
+            </div>
         </div>
     );
 };

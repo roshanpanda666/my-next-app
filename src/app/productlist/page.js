@@ -1,7 +1,8 @@
 "use client"
+import DeleteProduct from "@/lib/deleteProduct"
 import Link from "next/link"
 const getproducts =async()=>{
-    let data=await fetch("http://localhost:3000/api/products")
+    let data=await fetch("http://localhost:3000/api/products",{cache:"no-cache"})
     data=await data.json()
     if(data.success){
         return data.result
@@ -10,6 +11,7 @@ const getproducts =async()=>{
         return{success:false}
     }
 }
+
 
 export default async function Page(){
 
@@ -46,6 +48,9 @@ export default async function Page(){
                                     <td className="border-2 border-gray-400">{item.category}</td>
                                     <td className="border-2 border-gray-400">
                                         <Link href={"/productlist/"+item._id}>Edit</Link>
+                                    </td>
+                                    <td className="border-2 border-gray-400 text-red-600">
+                                        <DeleteProduct id={item._id}>.</DeleteProduct>
                                     </td>
                                 </tr>
                             ))
